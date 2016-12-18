@@ -2,7 +2,7 @@ package formats
 
 //Request Op Codes
 const (
-	CreateWindow uint8 = iota + 1
+	CreateWindow OpCode = iota + 1
 	ChangeWindowAttributes
 	GetWindowAttributes
 	DestroyWindow
@@ -125,7 +125,7 @@ const (
 
 //Request is the format for sending requests
 type Request struct {
-	OpCode uint8
+	Op     OpCode
 	Length uint16
 	Data   uint8
 }
