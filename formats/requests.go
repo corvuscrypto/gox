@@ -123,9 +123,9 @@ const (
 	NoOperation
 )
 
-//Request is the format for sending requests
-type Request struct {
-	Op     OpCode
-	Length uint16
-	Data   uint8
+//Request is the format for requests (X11proto p. 113-142)
+type Request interface {
+	Type() string
+	Marshal() ([]byte, error)
+	UnMarshal([]byte) error
 }

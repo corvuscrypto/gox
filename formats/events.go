@@ -36,3 +36,10 @@ const (
 	ClientMessage
 	MappingNotify
 )
+
+//Event is the format for events (X11proto p. 142-149)
+type Event interface {
+	Type() string
+	Marshal() ([]byte, error)
+	UnMarshal([]byte) error
+}
