@@ -125,7 +125,39 @@ const (
 
 //Request is the format for requests (X11proto p. 113-142)
 type Request interface {
-	Type() string
 	Marshal() ([]byte, error)
 	UnMarshal([]byte) error
+}
+
+type CreateWindowRequest struct {
+	Depth       uint8
+	WindowID    uint32
+	Parent      uint32
+	X           int16
+	Y           int16
+	Width       uint16
+	Height      uint16
+	BorderWidth uint16
+	Class       uint16
+	Visual      uint32
+	ValueMask   uint32
+	ValueList   []uint32
+}
+
+//Marshal transforms the data in the request into a slice of bytes
+func (c *CreateWindowRequest) Marshal() (data []byte, err error) {
+	ByteOrder.PutUint32(data, c.WindowID)
+	ByteOrder.PutUint32(data, c.Parent)
+	ByteOrder.PutUint16(data, uint16(c.X))
+	ByteOrder.PutUint16(data, uint16(c.Y))
+	ByteOrder.PutUint16(data, c.Width)
+	ByteOrder.PutUint16(data, c.Height)
+	ByteOrder.PutUint16(data, c.BorderWidth)
+	ByteOrder.PutUint16(data, c.Class)
+	ByteOrder.PutUint32(data, c.Visual)
+	ByteOrder.PutUint32(data, c.ValueMask)
+	for _, value := range c.ValueList {
+		ByteOrder.PutUint32(data, value)
+	}
+	return data, err
 }
