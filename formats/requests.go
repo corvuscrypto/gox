@@ -146,6 +146,9 @@ type CreateWindowRequest struct {
 
 //Marshal transforms the data in the request into a slice of bytes
 func (c *CreateWindowRequest) Marshal() (data []byte, err error) {
+	data = append(data, 1)
+	data = append(data, c.Depth)
+	ByteOrder.PutUint16(data, uint16((8 + len(c.valueList))))
 	ByteOrder.PutUint32(data, c.WindowID)
 	ByteOrder.PutUint32(data, c.Parent)
 	ByteOrder.PutUint16(data, uint16(c.X))
@@ -162,20 +165,28 @@ func (c *CreateWindowRequest) Marshal() (data []byte, err error) {
 	return data, err
 }
 
-//Marshal transforms the data in the request into a slice of bytes
+//Unmarshal reads a received slice of bytes into the struct
 func (c *CreateWindowRequest) Unmarshal(data []byte) (err error) {
-	ByteOrder.PutUint32(data, c.WindowID)
-	ByteOrder.PutUint32(data, c.Parent)
-	ByteOrder.PutUint16(data, uint16(c.X))
-	ByteOrder.PutUint16(data, uint16(c.Y))
-	ByteOrder.PutUint16(data, c.Width)
-	ByteOrder.PutUint16(data, c.Height)
-	ByteOrder.PutUint16(data, c.BorderWidth)
-	ByteOrder.PutUint16(data, c.Class)
-	ByteOrder.PutUint32(data, c.Visual)
-	ByteOrder.PutUint32(data, c.valueMask)
-	for _, value := range c.valueList {
-		ByteOrder.PutUint32(data, value.Value)
+	c.Depth = data[1]
+	c.WindowID = ByteOrder.Uint32(data[4:8])
+	c.Parent = ByteOrder.Uint32(data[8:12])
+	c.X = int16(ByteOrder.Uint16(data[12:14]))
+	c.Y = int16(ByteOrder.Uint16(data[14:16]))
+	c.Width = ByteOrder.Uint16(data[16:18])
+	c.Height = ByteOrder.Uint16(data[18:20])
+	c.BorderWidth = ByteOrder.Uint16(data[20:22])
+	c.Class = ByteOrder.Uint16(data[22:24])
+	c.Visual = ByteOrder.Uint32(data[24:28])
+	c.valueMask = ByteOrder.Uint32(data[28:32])
+	c.valueList = make([]Value, 0)
+	for i := uint32(0); (c.valueMask >> i) == 0; i++ {
+		if (c.valueMask >> i & 0x01) == 1 {
+			start := 32 + (len(c.valueList) * 4)
+			c.valueList = append(c.valueList, Value{
+				Mask:  1 << i,
+				Value: ByteOrder.Uint32(data[start : start+4]),
+			})
+		}
 	}
-	return data, err
+	return err
 }
